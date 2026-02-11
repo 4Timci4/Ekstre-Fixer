@@ -9,6 +9,8 @@ const fs = require('fs');
 let selectedFiles = [];
 let activeTab = 'genel';
 let selectedIndices = new Set();
+let sourceDir = localStorage.getItem('sourceDir') || '';
+let outputDir = localStorage.getItem('outputDir') || '';
 
 // --- Constants ---
 const COLS = {
@@ -47,10 +49,51 @@ const mergeCheckbox = document.getElementById('mergeFiles');
 const startDateInput = document.getElementById('startDate');
 const tabs = document.querySelectorAll('.tab-btn');
 const tabContents = document.querySelectorAll('.tab-content');
+const sourcePathEl = document.getElementById('sourcePath');
+const outputPathEl = document.getElementById('outputPath');
+const sourceBtn = document.getElementById('sourceBtn');
+const outputBtn = document.getElementById('outputBtn');
+
+// --- Folder Path UI ---
+function updateFolderUI() {
+  if (sourceDir) {
+    sourcePathEl.textContent = sourceDir;
+    sourcePathEl.classList.remove('empty');
+  } else {
+    sourcePathEl.textContent = 'Seçilmedi';
+    sourcePathEl.classList.add('empty');
+  }
+  if (outputDir) {
+    outputPathEl.textContent = outputDir;
+    outputPathEl.classList.remove('empty');
+  } else {
+    outputPathEl.textContent = 'Seçilmedi';
+    outputPathEl.classList.add('empty');
+  }
+}
+updateFolderUI();
+
+sourceBtn.addEventListener('click', async () => {
+  const dir = await ipcRenderer.invoke('select-folder', { title: 'Kaynak Klasörü Seçin', defaultPath: sourceDir });
+  if (dir) {
+    sourceDir = dir;
+    localStorage.setItem('sourceDir', dir);
+    updateFolderUI();
+  }
+});
+
+outputBtn.addEventListener('click', async () => {
+  const dir = await ipcRenderer.invoke('select-folder', { title: 'Çıktı Klasörü Seçin', defaultPath: outputDir });
+  if (dir) {
+    outputDir = dir;
+    localStorage.setItem('outputDir', dir);
+    updateFolderUI();
+  }
+});
 
 // --- Event Listeners ---
 selectBtn.addEventListener('click', async () => {
-  const files = await ipcRenderer.invoke('select-files');
+  const files = await ipcRenderer.invoke('select-files', sourceDir || undefined);
   if (files.length) addFiles(files);
 });
 
@@ -660,31 +703,31 @@ async function processAndSave() {
   }
 
   // Save files
-  let outputDir = null;
+  let savedOutputDir = null;
 
   if (results.length === 1 || merge) {
     const defaultName = merge ? 'Birlestirilmis_Ekstreler.xlsx' :
       `${path.basename(selectedFiles[0], path.extname(selectedFiles[0]))}_Ekstre.xlsx`;
-    const savePath = await ipcRenderer.invoke('save-file', defaultName);
+    const savePath = await ipcRenderer.invoke('save-file', defaultName, outputDir || undefined);
 
     if (savePath) {
       await writeExcelFile(savePath, results, merge);
-      outputDir = path.dirname(savePath);
+      savedOutputDir = path.dirname(savePath);
     }
   } else {
-    outputDir = await ipcRenderer.invoke('select-directory');
+    savedOutputDir = await ipcRenderer.invoke('select-directory', outputDir || undefined);
 
-    if (outputDir) {
+    if (savedOutputDir) {
       for (let i = 0; i < results.length; i++) {
         const result = results[i];
         const originalName = path.basename(selectedFiles[i], path.extname(selectedFiles[i]));
-        const outputPath = path.join(outputDir, `${originalName}_Ekstre.xlsx`);
+        const outputPath = path.join(savedOutputDir, `${originalName}_Ekstre.xlsx`);
         await writeExcelFile(outputPath, [result], false);
       }
     }
   }
 
-  if (!outputDir) {
+  if (!savedOutputDir) {
     setStatus('İşlem kullanıcı tarafından iptal edildi.', 'warning');
     return;
   }
@@ -718,12 +761,12 @@ async function processAndSave() {
   const openFolder = await ipcRenderer.invoke('show-message', {
     type: 'question',
     title: 'Klasörü Aç',
-    message: `İşlenen dosyaların bulunduğu klasörü açmak ister misiniz?\n${outputDir}`,
+    message: `İşlenen dosyaların bulunduğu klasörü açmak ister misiniz?\n${savedOutputDir}`,
     buttons: ['Evet', 'Hayır']
   });
 
   if (openFolder === 0) {
-    await ipcRenderer.invoke('open-folder', outputDir);
+    await ipcRenderer.invoke('open-folder', savedOutputDir);
   }
 }
 

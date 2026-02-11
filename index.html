@@ -276,6 +276,49 @@
     .date-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
     .date-hint .hl { color: var(--accent); font-weight: 500; }
 
+    /* ── Folder Paths ── */
+    .folder-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: clamp(6px, 1vh, 10px) clamp(8px, 1.5vw, 12px);
+    }
+    .folder-row + .folder-row {
+      border-top: 1px solid var(--border-subtle);
+    }
+    .folder-label {
+      font-size: clamp(10px, 2vw, 12px);
+      font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+      min-width: 52px;
+    }
+    .folder-path {
+      flex: 1;
+      font-size: clamp(10px, 2vw, 12px);
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      direction: rtl;
+      text-align: left;
+    }
+    .folder-path.empty { color: var(--text-muted); font-style: italic; }
+    .btn-folder {
+      padding: 4px 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      border-radius: 5px;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: clamp(9px, 1.8vw, 11px);
+      cursor: pointer;
+      transition: all 0.12s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-folder:hover { background: var(--bg-hover); color: var(--text-primary); }
+
     /* ── Merge Option ── */
     .option-card {
       display: flex;
@@ -384,6 +427,20 @@
           <input type="date" id="startDate" name="startDate" autocomplete="off" class="date-input">
           <p class="date-hint">Önceki işlemler <span class="hl">devir</span> olarak hesaplanır</p>
         </div>
+      </div>
+    </section>
+
+    <!-- Folder Paths -->
+    <section class="card">
+      <div class="folder-row">
+        <span class="folder-label">Kaynak:</span>
+        <span id="sourcePath" class="folder-path empty">Seçilmedi</span>
+        <button id="sourceBtn" class="btn-folder">Seç</button>
+      </div>
+      <div class="folder-row">
+        <span class="folder-label">Çıktı:</span>
+        <span id="outputPath" class="folder-path empty">Seçilmedi</span>
+        <button id="outputBtn" class="btn-folder">Seç</button>
       </div>
     </section>
 

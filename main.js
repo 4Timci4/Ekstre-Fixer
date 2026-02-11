@@ -39,34 +39,49 @@ app.on('window-all-closed', () => {
 });
 
 // IPC Handlers
-ipcMain.handle('select-files', async () => {
-  const result = await dialog.showOpenDialog(mainWindow, {
+ipcMain.handle('select-files', async (event, defaultPath) => {
+  const opts = {
     title: 'Excel dosyaları seçin',
     filters: [{ name: 'Excel files', extensions: ['xlsx', 'xls'] }],
     properties: ['openFile', 'multiSelections']
-  });
+  };
+  if (defaultPath) opts.defaultPath = defaultPath;
+  const result = await dialog.showOpenDialog(mainWindow, opts);
   return result.filePaths;
 });
 
-ipcMain.handle('save-file', async (event, defaultName) => {
+ipcMain.handle('save-file', async (event, defaultName, defaultDir) => {
+  const defaultPath = defaultDir ? path.join(defaultDir, defaultName) : defaultName;
   const result = await dialog.showSaveDialog(mainWindow, {
     title: 'İşlenmiş Dosyayı Kaydet',
-    defaultPath: defaultName,
+    defaultPath: defaultPath,
     filters: [{ name: 'Excel files', extensions: ['xlsx'] }]
   });
   return result.filePath;
 });
 
-ipcMain.handle('select-directory', async () => {
-  const result = await dialog.showOpenDialog(mainWindow, {
+ipcMain.handle('select-directory', async (event, defaultPath) => {
+  const opts = {
     title: 'İşlenmiş Dosyaların Kaydedileceği Klasörü Seçin',
     properties: ['openDirectory']
-  });
+  };
+  if (defaultPath) opts.defaultPath = defaultPath;
+  const result = await dialog.showOpenDialog(mainWindow, opts);
   return result.filePaths[0];
 });
 
 ipcMain.handle('open-folder', async (event, folderPath) => {
   shell.openPath(folderPath);
+});
+
+ipcMain.handle('select-folder', async (event, { title, defaultPath }) => {
+  const opts = {
+    title: title || 'Klasör Seçin',
+    properties: ['openDirectory']
+  };
+  if (defaultPath) opts.defaultPath = defaultPath;
+  const result = await dialog.showOpenDialog(mainWindow, opts);
+  return result.filePaths[0] || null;
 });
 
 ipcMain.handle('show-message', async (event, { type, title, message, buttons }) => {
