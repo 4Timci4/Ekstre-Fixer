@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0e1a">
+  <meta name="color-scheme" content="dark">
+  <title>Ekstre Fixer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #0a0e1a;
+      --bg-base: #0f1629;
+      --bg-surface: #171d30;
+      --bg-elevated: #1e2640;
+      --bg-hover: #252e4a;
+      --border-subtle: #1e2640;
+      --border-default: #2a3454;
+      --border-strong: #3b4770;
+      --text-primary: #e8ecf4;
+      --text-secondary: #8b97b8;
+      --text-muted: #576380;
+      --accent: #e5a411;
+      --accent-glow: rgba(229, 164, 17, 0.15);
+      --accent-subtle: rgba(229, 164, 17, 0.08);
+      --success: #2dd4a0;
+      --success-glow: rgba(45, 212, 160, 0.15);
+      --danger: #f87171;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -webkit-app-region: no-drag;
+    }
+
+    /* ── Layout Shell ── */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: clamp(12px, 3vh, 20px) clamp(12px, 4vw, 24px);
+      gap: clamp(8px, 1.5vh, 14px);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      border-radius: 8px;
+      outline: none;
+    }
+    .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .btn:active:not(:disabled) { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .btn-add {
+      width: 100%;
+      padding: clamp(8px, 1.5vh, 11px) 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      color: var(--text-primary);
+      font-size: clamp(13px, 2.8vw, 15px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-add:hover:not(:disabled) { background: var(--bg-hover); border-color: var(--border-strong); }
+    .btn-add svg { width: 14px; height: 14px; color: var(--accent); transition: transform 0.15s; }
+    .btn-add:hover svg { transform: scale(1.15); }
+
+    .btn-sm {
+      flex: 1;
+      padding: clamp(5px, 1vh, 8px) 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: clamp(11px, 2.2vw, 13px);
+    }
+    .btn-sm:hover:not(:disabled) { background: var(--bg-elevated); color: var(--text-primary); }
+
+    .btn-process {
+      width: 100%;
+      padding: clamp(10px, 2vh, 14px) 16px;
+      background: linear-gradient(135deg, var(--success) 0%, #1fb88a 100%);
+      color: white;
+      font-size: clamp(13px, 2.8vw, 16px);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 2px 16px var(--success-glow);
+    }
+    .btn-process:hover:not(:disabled) { filter: brightness(1.1); }
+    .btn-process:disabled { background: var(--bg-elevated); color: var(--text-muted); box-shadow: none; }
+    .btn-process svg { width: 15px; height: 15px; }
+
+    /* ── Drop Zone ── */
+    .drop-zone-wrapper {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .drop-zone {
+      flex: 1;
+      min-height: 60px;
+      border: 1.5px dashed var(--border-default);
+      border-radius: 8px;
+      background: linear-gradient(160deg, var(--bg-surface) 0%, var(--bg-deep) 100%);
+      padding: 6px;
+      margin-top: clamp(6px, 1vh, 10px);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .drop-zone.dragover {
+      border-color: var(--accent);
+      background: linear-gradient(160deg, var(--accent-subtle) 0%, var(--bg-deep) 100%);
+    }
+
+    .file-list {
+      list-style: none;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .file-list::-webkit-scrollbar { width: 4px; }
+    .file-list::-webkit-scrollbar-track { background: transparent; }
+    .file-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+    /* Placeholder */
+    .placeholder {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .placeholder svg { width: clamp(22px, 5vw, 28px); height: clamp(22px, 5vw, 28px); color: var(--text-muted); opacity: 0.5; }
+    .placeholder .ph-text { font-size: 13px; color: var(--text-muted); }
+    .placeholder .ph-sub { font-size: 11px; color: var(--text-muted); opacity: 0.5; }
+
+    /* File items */
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 8px;
+      background: rgba(30, 38, 64, 0.4);
+      border: 1px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      animation: fileSlide 0.2s ease-out;
+      flex-shrink: 0;
+    }
+    .file-item:hover { background: rgba(37, 46, 74, 0.7); }
+    .file-item.selected { border-color: rgba(229, 164, 17, 0.35); background: rgba(37, 46, 74, 0.6); }
+    @keyframes fileSlide { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+
+    .file-info { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .file-info svg { width: 13px; height: 13px; color: var(--success); flex-shrink: 0; }
+    .file-name { font-size: clamp(11px, 2.5vw, 14px); color: var(--text-secondary); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .remove-btn {
+      opacity: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 3px;
+      border-radius: 4px;
+      color: var(--text-muted);
+      transition: all 0.12s;
+      flex-shrink: 0;
+    }
+    .file-item:hover .remove-btn { opacity: 1; }
+    .remove-btn:hover { color: var(--danger); background: rgba(248, 113, 113, 0.1); }
+    .remove-btn svg { width: 11px; height: 11px; }
+
+    .action-row {
+      display: flex;
+      gap: 6px;
+      margin-top: clamp(6px, 1vh, 8px);
+    }
+
+    /* ── Tabs / Mode ── */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .tab-bar {
+      display: flex;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: clamp(7px, 1.2vh, 10px) 8px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: clamp(11px, 2.5vw, 14px);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { color: var(--text-secondary); }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: var(--accent-subtle);
+    }
+
+    .tab-body { padding: clamp(8px, 1.5vh, 12px); }
+
+    .mode-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: clamp(8px, 1.5vh, 12px);
+      background: rgba(30, 38, 64, 0.3);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+    }
+    .mode-icon {
+      width: clamp(30px, 6vw, 36px);
+      height: clamp(30px, 6vw, 36px);
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+      border: 1px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .mode-icon svg { width: 14px; height: 14px; color: var(--accent); }
+    .mode-title { font-size: clamp(12px, 2.5vw, 14px); font-weight: 600; color: var(--text-primary); }
+    .mode-desc { font-size: clamp(10px, 2vw, 12px); color: var(--text-muted); margin-top: 1px; }
+
+    /* Date input */
+    .date-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+    .date-input {
+      width: 100%;
+      padding: clamp(6px, 1vh, 9px) 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: clamp(11px, 2.5vw, 14px);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .date-input:hover { border-color: var(--border-strong); }
+    .date-input:focus { border-color: var(--accent); }
+    .date-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .date-hint .hl { color: var(--accent); font-weight: 500; }
+
+    /* ── Merge Option ── */
+    .option-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: clamp(8px, 1.5vh, 12px);
+      cursor: pointer;
+    }
+    .option-card:hover .opt-label { color: var(--text-primary); }
+    .option-cb {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .opt-label { font-size: clamp(11px, 2.5vw, 14px); font-weight: 500; color: var(--text-secondary); transition: color 0.15s; }
+    .opt-desc { font-size: clamp(10px, 2vw, 12px); color: var(--text-muted); }
+
+    /* ── Progress ── */
+    .progress-area { flex-shrink: 0; }
+    .progress-track {
+      height: 3px;
+      border-radius: 2px;
+      background: var(--bg-elevated);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent) 0%, #f0c040 50%, var(--accent) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 2s linear infinite;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .status-text {
+      text-align: center;
+      font-size: clamp(11px, 2.2vw, 14px);
+      color: var(--text-muted);
+      margin-top: 6px;
+      min-height: 16px;
+      font-weight: 500;
+    }
+    .status-text.s-success { color: var(--success); }
+    .status-text.s-error { color: var(--danger); }
+    .status-text.s-warning { color: #fbbf24; }
+
+    /* ── Hide/show ── */
+    .hidden { display: none !important; }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+
+
+    <!-- File Selection -->
+    <section class="drop-zone-wrapper">
+      <button id="selectBtn" class="btn btn-add" aria-label="Excel dosyaları seç">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span>Dosya Ekle</span>
+      </button>
+
+      <div id="dropZone" class="drop-zone" role="region" aria-label="Dosya bırakma alanı">
+        <ul id="fileList" class="file-list" role="list" aria-label="Seçilen dosyalar"></ul>
+      </div>
+
+      <div class="action-row">
+        <button id="deleteBtn" disabled class="btn btn-sm" aria-label="Seçili dosyayı sil">Seçileni Sil</button>
+        <button id="clearBtn" disabled class="btn btn-sm" aria-label="Tüm dosyaları temizle">Tümünü Temizle</button>
+      </div>
+    </section>
+
+    <!-- Mode Selection -->
+    <section class="card">
+      <div class="tab-bar" role="tablist" aria-label="Ekstre türü seçimi">
+        <button class="tab-btn active" data-tab="genel" role="tab" aria-selected="true" id="tab-genel">Genel Ekstre</button>
+        <button class="tab-btn" data-tab="tarihli" role="tab" aria-selected="false" id="tab-tarihli">Tarihli Ekstre</button>
+      </div>
+
+      <div class="tab-body">
+        <div id="genel" class="tab-content" role="tabpanel" aria-labelledby="tab-genel">
+          <div class="mode-card">
+            <div class="mode-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="mode-title">Standart İşleme</div>
+              <div class="mode-desc">Tüm kayıtları işler ve bakiye hesaplar</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tarihli" class="tab-content hidden" role="tabpanel" aria-labelledby="tab-tarihli">
+          <label for="startDate" class="date-label">Başlangıç Tarihi</label>
+          <input type="date" id="startDate" name="startDate" autocomplete="off" class="date-input">
+          <p class="date-hint">Önceki işlemler <span class="hl">devir</span> olarak hesaplanır</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Options -->
+    <section class="card">
+      <label class="option-card" for="mergeFiles">
+        <input type="checkbox" id="mergeFiles" name="mergeFiles" class="option-cb">
+        <div>
+          <div class="opt-label">Dosyaları Birleştir</div>
+          <div class="opt-desc">Tek Excel dosyasında birleştirir</div>
+        </div>
+      </label>
+    </section>
+
+    <!-- Process Button -->
+    <button id="processBtn" disabled class="btn btn-process" aria-label="Dosyaları işle ve kaydet">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+      </svg>
+      <span>İşle &amp; Kaydet</span>
+    </button>
+
+    <!-- Progress -->
+    <div class="progress-area" role="status" aria-live="polite">
+      <div class="progress-track">
+        <div id="progressFill" class="progress-fill" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+      <p id="status" class="status-text"></p>
+    </div>
+
+  </div>
+
+  <script>document.getElementById('startDate').max = new Date().toISOString().split('T')[0];</script>
+  <script src="renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "name": "ekstre-fixer",
+  "version": "1.0.0",
+  "description": "Excel Ekstre Fixer",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --dir",
+    "build:dir": "electron-builder --win --dir"
+  },
+  "author": "4Timci4",
+  "license": "MIT",
+  "dependencies": {
+    "dayjs": "^1.11.19",
+    "exceljs": "^4.4.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^40.3.0",
+    "electron-builder": "^26.7.0",
+    "electron-reload": "^2.0.0-alpha.1"
+  },
+  "build": {
+    "appId": "com.ekstrefixer.app",
+    "productName": "Ekstre Fixer",
+    "win": {
+      "target": "dir",
+      "icon": "icon.ico",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "EkstreFixer.exe"
+    }
+  }
+}
